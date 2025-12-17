@@ -4,13 +4,17 @@ import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import path from "path";
 import { fileURLToPath } from "url";
-dotenv.config();
+import { connectDB } from "./lib/db.js";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+
 const PORT = process.env.PORT || 3000;
+
+app.use(express.json()); //middleware to parse json bodies from the user
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
@@ -21,6 +25,11 @@ if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(__dirname, "../../frontend", "dist", "index.html"));
   });
 }
-app.listen(PORT, () => {
-  console.log(`server is running at http://localhost:${PORT}`);
-});
+const start = async () => {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`server is running at http://localhost:${PORT}`);
+  });
+};
+
+start();
