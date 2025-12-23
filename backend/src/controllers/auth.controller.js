@@ -14,9 +14,7 @@ export const signup = async (req, res) => {
     }
 
     if (password.length < 6) {
-      return res
-        .status(400)
-        .json({ message: "Password must be at least 6 characters" });
+      return res.status(400);
     }
 
     // check if emailis valid: regex
@@ -119,7 +117,14 @@ export const updateProfile = async (req, res) => {
       },
       { new: true }
     );
-    res.status(200).json(updatedUser);
+
+    // Return only the fields the client needs (avoid exposing password hash)
+    res.status(200).json({
+      _id: updatedUser._id,
+      fullName: updatedUser.fullName,
+      email: updatedUser.email,
+      profilePic: updatedUser.profilePic,
+    });
   } catch (error) {
     console.error("Error in update profile:", error);
     res.status(500).json({ message: "Internal server error" });
