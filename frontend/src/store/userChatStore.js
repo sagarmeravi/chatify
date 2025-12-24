@@ -5,10 +5,11 @@ import toast from "react-hot-toast";
 export const useChatStore = create((set, get) => ({
   allContacts: [],
   chats: [],
-  message: [],
+  messages: [],
   activeTab: "chats",
   selectedUser: null,
   isUsersLoading: false,
+  isMessagesLoading: false,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
 
   toggleSound: () => {
@@ -43,6 +44,19 @@ export const useChatStore = create((set, get) => ({
       toast.error(error?.response?.data?.message || "Failed to fetch chats");
     } finally {
       set({ isUsersLoading: false });
+    }
+  },
+  getMessagesByUserId: async (userId) => {
+    set({ isMessagesLoading: true });
+    try {
+      const res = await axiosInstance.get(`/messages/${userId}`);
+      set({ messages: res.data });
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Failed to load the user message"
+      );
+    } finally {
+      set({ isMessagesLoading: false });
     }
   },
 }));
