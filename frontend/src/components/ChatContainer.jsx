@@ -1,29 +1,45 @@
-import React, { useEffect, useRef } from "react";
-import { useChatStore } from "../store/userChatStore";
+import { useEffect, useRef } from "react";
 import { useAuthStore } from "../store/useAuthStore";
+import { useChatStore } from "../store/userChatStore";
 import ChatHeader from "./ChatHeader";
 import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
 import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessageLoadingSkeleton";
+
 function ChatContainer() {
-  const { selectedUser, getMessagesByUserId, messages, isMessagesLoading } =
-    useChatStore();
+  const {
+    selectedUser,
+    getMessagesByUserId,
+    messages,
+    isMessagesLoading,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
+
   useEffect(() => {
-    if (!selectedUser?._id) return;
     getMessagesByUserId(selectedUser._id);
-  }, [selectedUser, getMessagesByUserId]);
+    subscribeToMessages();
+
+    // clean up
+    return () => unsubscribeFromMessages();
+  }, [
+    selectedUser,
+    getMessagesByUserId,
+    subscribeToMessages,
+    unsubscribeFromMessages,
+  ]);
 
   useEffect(() => {
     if (messageEndRef.current) {
-      // use correct spelling for behavior and ensure smooth scrolling
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
   return (
     <>
-      <ChatHeader></ChatHeader>
+      <ChatHeader />
       <div className="flex-1 px-6 overflow-y-auto py-8">
         {messages.length > 0 && !isMessagesLoading ? (
           <div className="max-w-3xl mx-auto space-y-6">
@@ -31,9 +47,7 @@ function ChatContainer() {
               <div
                 key={msg._id}
                 className={`chat ${
-                  String(msg.senderId) === String(authUser._id)
-                    ? "chat-end"
-                    : "chat-start"
+                  msg.senderId === authUser._id ? "chat-end" : "chat-start"
                 }`}
               >
                 <div
@@ -60,15 +74,17 @@ function ChatContainer() {
                 </div>
               </div>
             ))}
+            {/* 👇 scroll target */}
             <div ref={messageEndRef} />
           </div>
         ) : isMessagesLoading ? (
           <MessagesLoadingSkeleton />
         ) : (
-          <NoChatHistoryPlaceholder name={selectedUser?.fullName || ""} />
+          <NoChatHistoryPlaceholder name={selectedUser.fullName} />
         )}
       </div>
-      <MessageInput></MessageInput>
+
+      <MessageInput />
     </>
   );
 }
