@@ -33,7 +33,8 @@ export const getMessagesByUserId = async (req, res) => {
         },
       ],
     });
-    res.status(200).json({ message });
+    // return array directly for easier client usage
+    res.status(200).json(message);
   } catch (error) {
     console.log("error in getting controller", error.message);
     res.status(500).json({ error: "Internal Server Erorr" });
